@@ -7,7 +7,7 @@ import pygame
 
 # Initialize pygame for audio
 pygame.mixer.init()
-audio_path = "/Users/duobinji/Documents/ultralytics/examples/robinji/beep.mp3"
+audio_path = "beep.mp3"
 
 # Check if file exists and is not empty
 if not os.path.exists(audio_path) or os.path.getsize(audio_path) == 0:
@@ -17,9 +17,6 @@ else:
         pygame.mixer.music.load(audio_path)
     except Exception as e:
         st.error(f"加载音频文件失败: {e}")
-
-# 确认状态标记
-confirmed = False
 
 # Load YOLO model
 model = YOLO("yolov8n.pt")
@@ -39,6 +36,7 @@ def main():
     frame_placeholder = st.empty()
     
     # 添加确认按钮
+    confirmed = False
     if st.button("确认并停止检测"):
         confirmed = True
         pygame.mixer.music.stop()
@@ -51,17 +49,6 @@ def main():
             st.error("无法读取摄像头画面！")
             break
             
-        # 如果未确认，执行检测
-        if not confirmed:
-            # 执行检测
-            results = model(frame)
-            
-            # 处理检测结果
-            for result in results:
-                for box in result.boxes:
-                    if int(box.cls) == 0:  # 0 是行人类别
-                        pygame.mixer.music.play(-1)  # 检测到行人时循环播放报警音
-
         # Perform detection
         results = model(frame)
         detected = False
@@ -74,16 +61,20 @@ def main():
                     x1, y1, x2, y2 = map(int, box.xyxy[0])
                     cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 2)
 
-        # Play alarm if pedestrian detected
-        if detected:
-            pygame.mixer.music.play(-1)  # Loop the beep sound
+        # Play alarm if pedestrian detected and not confirmed
+        if detected and not confirmed:
+            try:
+                if not pygame.mixer.music.get_busy():
+                    pygame.mixer.music.play(-1)  # Loop the beep sound
+            except:
+                pass  # Ignore errors in playing sound
         else:
             pygame.mixer.music.stop()
 
         # Display the frame
         frame_placeholder.image(frame, channels="BGR")
 
-        # Break the loop if 'q' is pressed
+        # Break the loop if 'q' is pressed (in non-streamlit context)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
