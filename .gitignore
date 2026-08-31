@@ -27,6 +27,7 @@ share/python-wheels/
 *.egg
 MANIFEST
 requirements.txt
+!examples/robinji/requirements.txt
 setup.py
 ultralytics.egg-info
 

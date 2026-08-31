@@ -208,9 +208,13 @@ def main():
     else:
         st.markdown('<div class="empty-card">未检测到常见目标</div>', unsafe_allow_html=True)
 
-    api_key = api_key_input.strip() or os.environ.get("DEEPSEEK_API_KEY", "")
+    api_key = (
+        api_key_input.strip()
+        or os.environ.get("DEEPSEEK_API_KEY", "")
+        or st.secrets.get("DEEPSEEK_API_KEY", "")
+    )
     if not api_key:
-        st.error("未配置 DeepSeek API Key。请在 .env 文件或环境变量中设置 DEEPSEEK_API_KEY，或在侧边栏输入。")
+        st.error("未配置 DeepSeek API Key。请在 .env / 环境变量 / Streamlit Secrets 中设置 DEEPSEEK_API_KEY，或在侧边栏输入。")
         return
 
     if st.button("✨ 生成图片描述", width="stretch"):
